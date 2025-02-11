@@ -132,7 +132,7 @@
                     let formattedDate = eventDate.toLocaleDateString();
                     let formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     let isLive = event.status === "LIVE"; // Check if match is live
-                    let videoLink = event.dai_url ? `https://shz.al/~Team_Rohit.html?videoUrl=${event.dai_url}` : "#";
+                    let videoLink = event.dai_url ? `https://teamro45.netlify.app?videoUrl=${event.dai_url}` : "#";
 
                     eventDiv.innerHTML = `
                         <img src="${event.src}" alt="${event.title}">
