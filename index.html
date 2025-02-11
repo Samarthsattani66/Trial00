@@ -132,20 +132,20 @@
                     let formattedDate = eventDate.toLocaleDateString();
                     let formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     let isLive = event.status === "LIVE"; // Check if match is live
-                    let videoLink = event.dai_url ? http://teamro45.netlify.app?Url=${event.dai_url} : "#";
+                    let videoLink = event.dai_url ? `http://teamro45.netlify.app?Url=${event.dai_url}` : "#";
 
-                    eventDiv.innerHTML = 
+                    eventDiv.innerHTML = `
                         <img src="${event.src}" alt="${event.title}">
-                        ${isLive ? <div class="live-badge">LIVE</div> : ""}
+                        ${isLive ? `<div class="live-badge">LIVE</div>` : ""}
                         <div class="event-content">
                             <div class="title">${event.title}</div>
                             <div class="league">${event.event_name}</div>
                             <div class="buttons">
-                                ${event.dai_url ? <a href="${videoLink}" target="_blank" class="watch-btn">Watch Now</a> : ''}
-                                ${event.dai_url ? <a href="${videoLink}" target="_blank" class="watch-btn">Ad-Free</a> : ''}
+                                ${event.dai_url ? `<a href="${videoLink}" target="_blank" class="watch-btn">Watch Now</a>` : ''}
+                                ${event.dai_url ? `<a href="${videoLink}" target="_blank" class="watch-btn">Ad-Free</a>` : ''}
                             </div>
                         </div>
-                    ;
+                    `;
                     container.appendChild(eventDiv);
                 });
 
