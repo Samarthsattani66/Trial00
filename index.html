@@ -3,158 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Events</title>
+    <title>M3U8 Channel Selector</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.5.2/video-js.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.5.2/video.min.js"></script>
+
     <style>
-        @keyframes heartbeat {
-            0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-            50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
-            100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        }
-
-        @keyframes livePulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
         body {
+            background-color: black;
+            color: white;
+            text-align: center;
             font-family: Arial, sans-serif;
-            text-align: center;
-            background: #121212;
-            color: white;
-            padding: 20px;
         }
-        h1 {
-            font-size: 26px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-        .event-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-        .event {
-            width: 400px;
-            background: #222;
-            border-radius: 12px;
-            overflow: hidden;
+
+        /* Full-width 16:9 Video Player */
+        .video-container {
             position: relative;
-            padding-bottom: 15px;
-            animation: heartbeat 3s infinite;
-            transition: transform 0.3s;
-        }
-        .event:hover {
-            transform: scale(1.03);
-        }
-        .event img {
             width: 100%;
-            height: 220px;
-            object-fit: cover;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            padding-top: 56.25%;
+            background-color: black;
         }
-        .event-content {
-            padding: 15px;
+
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 5px;
-        }
-        .league {
-            font-size: 14px;
-            color: #bbb;
-            margin-bottom: 10px;
-        }
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .watch-btn {
-            display: block;
-            width: 90%;
-            padding: 12px;
-            background: transparent;
-            color: white;
-            text-decoration: none;
-            border: 2px solid gold;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            margin: 0 auto;
+
+        /* Search Box */
+        .search-container {
+            margin: 20px auto;
             text-align: center;
-            transition: all 0.3s ease-in-out;
         }
-        .watch-btn:hover {
-            background: gold;
-            color: black;
-            transform: scale(1.1);
-            box-shadow: 0 0 25px gold;
+
+        .search-input {
+            width: 80%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
         }
+
+        /* Channel Grid */
+        #channelList {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            padding: 15px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        /* Premium Channel Box */
+        .channel-item {
+            position: relative;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.5s ease-in-out, background 0.5s ease-in-out;
+            text-align: center;
+            padding-bottom: 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0px 2px 8px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .channel-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: scale(1.02);
+            box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.15);
+        }
+
+        /* LIVE Badge */
         .live-badge {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: red;
+            top: 5px;
+            left: 5px;
+            background-color: red;
             color: white;
             font-size: 12px;
             font-weight: bold;
-            padding: 5px 10px;
+            padding: 4px 7px;
+            border-radius: 3px;
+            animation: slow-pulse 2s infinite;
+        }
+
+        /* Slow Heartbeat Animation */
+        @keyframes slow-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Channel Logo */
+        .channel-logo {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            background: black;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .channel-item:hover .channel-logo {
+            transform: scale(1.05);
+        }
+
+        /* Premium Watch Button */
+        .watch-btn {
+            display: inline-block;
+            background: rgba(0, 188, 212, 0.2);
+            color: white;
+            font-size: 14px;
+            padding: 8px 14px;
             border-radius: 5px;
-            animation: livePulse 1.5s infinite;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: transform 1s ease-in-out, box-shadow 1s ease-in-out;
+            border: 1px solid rgba(0, 188, 212, 0.5);
+            box-shadow: 0px 0px 5px rgba(0, 188, 212, 0.3);
+            animation: slow-glow 3s infinite;
+        }
+
+        .watch-btn:hover {
+            background: rgba(0, 188, 212, 0.4);
+            box-shadow: 0px 0px 12px rgba(0, 188, 212, 0.6);
+            transform: scale(1.05);
+        }
+
+        /* Slow Glow Animation */
+        @keyframes slow-glow {
+            0% { box-shadow: 0px 0px 5px rgba(0, 188, 212, 0.3); }
+            50% { box-shadow: 0px 0px 8px rgba(0, 188, 212, 0.5); }
+            100% { box-shadow: 0px 0px 5px rgba(0, 188, 212, 0.3); }
+        }
+
+        /* Channel Name */
+        .channel-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-    <h1>Live Events</h1>
-    <div class="event-container" id="events"></div>
+    <!-- Video Player (Full-Screen Width, 16:9 Aspect Ratio) -->
+    <div class="video-container">
+        <video id="videoPlayer" class="video-js vjs-default-skin" controls>
+            <source id="videoSource" type="application/x-mpegURL">
+        </video>
+    </div>
+
+    <h2>ALLROUNDER LIVE TV</h2>
+
+    <!-- Search Box -->
+    <div class="search-container">
+        <input type="text" id="searchBox" class="search-input" placeholder="Search for a channel..." onkeyup="searchChannels()">
+    </div>
+
+    <!-- Channel List Grid -->
+    <div id="channelList"></div>
 
     <script>
-        async function fetchEvents() {
+        let channels = [];
+
+        async function fetchChannels() {
+            const playlistUrl = "https://raw.githubusercontent.com/drmlive/mix/main/jsyz.m3u8";
+            
             try {
-                const response = await fetch("https://raw.githubusercontent.com/drmlive/fancode-live-events/refs/heads/main/fancode.json");
-                const data = await response.json();
-                
-                const container = document.getElementById("events");
-                container.innerHTML = ""; 
+                const response = await fetch(playlistUrl);
+                const playlistText = await response.text();
+                const lines = playlistText.split("\n");
 
-                data.matches.forEach(event => {
-                    const eventDiv = document.createElement("div");
-                    eventDiv.classList.add("event");
+                channels = [];
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].startsWith("#EXTINF")) {
+                        let name = lines[i].split(",")[1] || "Unknown Channel";
+                        let logo = lines[i].match(/tvg-logo="(.*?)"/)?.[1] || "";
+                        let url = lines[i + 1]?.trim();
+                        if (url && url.startsWith("http")) {
+                            channels.push({ name, url, logo });
+                        }
+                    }
+                }
 
-                    let eventDate = new Date(event.startTime);
-                    let formattedDate = eventDate.toLocaleDateString();
-                    let formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    let isLive = event.status === "LIVE"; // Check if match is live
-                    let videoLink = event.dai_url ? `https://teamro45.netlify.app?videoUrl=${event.dai_url}` : "#";
-
-                    eventDiv.innerHTML = `
-                        <img src="${event.src}" alt="${event.title}">
-                        ${isLive ? `<div class="live-badge">LIVE</div>` : ""}
-                        <div class="event-content">
-                            <div class="title">${event.title}</div>
-                            <div class="league">${event.event_name}</div>
-                            <div class="buttons">
-                                ${event.dai_url ? `<a href="${videoLink}" target="_blank" class="watch-btn">Watch Now</a>` : ''}
-                                ${event.dai_url ? `<a href="${videoLink}" target="_blank" class="watch-btn">Ad-Free</a>` : ''}
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(eventDiv);
-                });
+                displayChannels(channels);
+                playChannel(channels[0].url); 
 
             } catch (error) {
-                console.error("Error fetching events:", error);
+                console.error("Error fetching playlist:", error);
             }
         }
 
-        fetchEvents();
+        function displayChannels(channelList) {
+            document.getElementById("channelList").innerHTML = "";
+            channelList.forEach(channel => {
+                document.getElementById("channelList").innerHTML += `
+                    <div class="channel-item">
+                        <div class="live-badge">LIVE</div>
+                        <img src="${channel.logo}" class="channel-logo">
+                        <div class="channel-name">${channel.name}</div>
+                        <div class="watch-btn" onclick="playChannel('${channel.url}')">▶ Watch</div>
+                    </div>
+                `;
+            });
+        }
+
+        function searchChannels() {
+            let query = document.getElementById("searchBox").value.toLowerCase();
+            displayChannels(channels.filter(channel => channel.name.toLowerCase().includes(query)));
+        }
+
+        function playChannel(url) {
+            document.getElementById("videoSource").src = url;
+            document.getElementById("videoPlayer").load();
+            document.getElementById("videoPlayer").play();
+        }
+
+        fetchChannels();
     </script>
 
 </body>
