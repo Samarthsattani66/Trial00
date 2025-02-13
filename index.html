@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>M3U8 Channel Selector</title>
     
+    <!-- Video.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.5.2/video-js.min.css" rel="stylesheet">
+    
+    <!-- Video.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.5.2/video.min.js"></script>
 
     <style>
@@ -17,18 +20,10 @@
         }
 
         .video-container {
-            position: relative;
             width: 100%;
-            padding-top: 56.25%;
+            max-width: 800px;
+            margin: auto;
             background-color: black;
-        }
-
-        .video-container video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
         }
 
         .search-container {
@@ -59,97 +54,39 @@
         }
 
         .channel-item {
-            position: relative;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.5s ease-in-out, background 0.5s ease-in-out;
             text-align: center;
             padding-bottom: 12px;
-            backdrop-filter: blur(8px);
-            box-shadow: 0px 2px 8px rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .channel-item:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: scale(1.02);
-            box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.15);
-        }
-
-        .live-badge {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background-color: red;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 4px 7px;
-            border-radius: 3px;
-            animation: slow-pulse 2s infinite;
-        }
-
-        @keyframes slow-pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
+            cursor: pointer;
         }
 
         .channel-logo {
             width: 100%;
             height: 100px;
             object-fit: cover;
-            background: black;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.5s ease-in-out;
-        }
-
-        .channel-item:hover .channel-logo {
-            transform: scale(1.05);
         }
 
         .watch-btn {
             display: inline-block;
-            background: rgba(0, 188, 212, 0.2);
+            background: rgba(0, 188, 212, 0.3);
             color: white;
             font-size: 14px;
             padding: 8px 14px;
             border-radius: 5px;
             margin-top: 8px;
             cursor: pointer;
-            transition: transform 1s ease-in-out, box-shadow 1s ease-in-out;
-            border: 1px solid rgba(0, 188, 212, 0.5);
-            box-shadow: 0px 0px 5px rgba(0, 188, 212, 0.3);
-            animation: slow-glow 3s infinite;
         }
 
         .watch-btn:hover {
-            background: rgba(0, 188, 212, 0.4);
-            box-shadow: 0px 0px 12px rgba(0, 188, 212, 0.6);
-            transform: scale(1.05);
-        }
-
-        @keyframes slow-glow {
-            0% { box-shadow: 0px 0px 5px rgba(0, 188, 212, 0.3); }
-            50% { box-shadow: 0px 0px 8px rgba(0, 188, 212, 0.5); }
-            100% { box-shadow: 0px 0px 5px rgba(0, 188, 212, 0.3); }
-        }
-
-        .channel-name {
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 5px;
+            background: rgba(0, 188, 212, 0.5);
         }
     </style>
 </head>
 <body>
 
     <div class="video-container">
-        <video id="videoPlayer" class="video-js vjs-default-skin" controls>
-            <source id="videoSource" type="application/x-mpegURL">
-        </video>
+        <video id="videoPlayer" class="video-js vjs-default-skin" controls></video>
     </div>
 
     <h2>ALLROUNDER LIVE TV</h2>
@@ -165,7 +102,7 @@
 
         async function fetchChannels() {
             const playlistUrl = "https://raw.githubusercontent.com/drmlive/mix/main/jsyz.m3u8";
-            
+
             try {
                 const response = await fetch(playlistUrl);
                 const playlistText = await response.text();
@@ -199,10 +136,8 @@
             channelList.forEach(channel => {
                 document.getElementById("channelList").innerHTML += `
                     <div class="channel-item">
-                        <div class="live-badge">LIVE</div>
                         <img src="${channel.logo}" class="channel-logo">
-                        <div class="channel-name">${channel.name}</div>
-                        <div class="watch-btn" onclick="playChannel('${channel.url}')">▶ Watch</div>
+                        <div class="watch-btn" onclick="playChannel('${channel.url}')">▶ Watch ${channel.name}</div>
                     </div>
                 `;
             });
@@ -214,11 +149,35 @@
         }
 
         function playChannel(url) {
-            document.getElementById("videoSource").src = url;
-            document.getElementById("videoPlayer").load();
-            document.getElementById("videoPlayer").play();
+            let player = videojs("videoPlayer", {
+                controls: true,
+                autoplay: true,
+                preload: 'auto',
+                techOrder: ["html5"],
+                html5: {
+                    hls: {
+                        withCredentials: false
+                    }
+                }
+            });
+
+            player.src({ src: url, type: "application/x-mpegURL" });
+
+            // Force the lowest quality stream (removes auto quality selection)
+            player.ready(() => {
+                player.tech().hls.selectPlaylist = function () {
+                    let lowestQuality = player.tech().hls.playlists.master.playlists.reduce((prev, curr) => {
+                        return prev.attributes.BANDWIDTH < curr.attributes.BANDWIDTH ? prev : curr;
+                    });
+                    return lowestQuality;
+                };
+                player.play();
+            });
+
+            console.log("Now Playing:", url);
         }
 
+        // Load Channels
         fetchChannels();
     </script>
 
