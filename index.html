@@ -8,8 +8,9 @@
     <!-- Video.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.5.2/video-js.min.css" rel="stylesheet">
     
-    <!-- Video.js -->
+    <!-- Video.js & HLS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.5.2/video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>
 
     <style>
         body {
@@ -163,14 +164,8 @@
 
             player.src({ src: url, type: "application/x-mpegURL" });
 
-            // Force the lowest quality stream (removes auto quality selection)
+            // Let HLS automatically select the best quality based on internet speed
             player.ready(() => {
-                player.tech().hls.selectPlaylist = function () {
-                    let lowestQuality = player.tech().hls.playlists.master.playlists.reduce((prev, curr) => {
-                        return prev.attributes.BANDWIDTH < curr.attributes.BANDWIDTH ? prev : curr;
-                    });
-                    return lowestQuality;
-                };
                 player.play();
             });
 
